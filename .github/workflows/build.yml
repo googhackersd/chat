@@ -6,35 +6,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          
       - name: Install dependencies
         run: |
           pip install flet
-          pip install --upgrade flet
+          
       - name: Check files
         run: |
           ls -la
-          echo "=== Содержимое chat.py ==="
-          cat chat.py || echo "Файл chat.py не найден!"
-      - name: Create simple test
+          
+      - name: Create test file
         run: |
-          # Создаём простой тестовый файл, если chat.py не работает
-          echo '
-import flet as ft
+          echo 'import flet as ft
 
 def main(page: ft.Page):
     page.add(ft.Text("Hello World!"))
 
-ft.app(target=main)
-' > test.py
-      - name: Build APK
+ft.app(target=main)' > test.py
+          
+      - name: Try build
         run: |
-          # Пробуем разные способы
-          python -c "import flet; flet.build_apk('chat.py')" || \
-          python -m flet build chat.py || \
           python test.py
+          
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
