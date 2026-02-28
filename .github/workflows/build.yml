@@ -12,31 +12,25 @@ jobs:
           python-version: '3.10'
           
       - name: Install dependencies
-        run: |
-          pip install flet
-          
-      - name: Check files
-        run: |
-          ls -la
+        run: pip install flet
           
       - name: Create test file
         run: |
-          echo 'import flet as ft
+          cat > test.py << 'EOF'
+import flet as ft
 
 def main(page: ft.Page):
     page.add(ft.Text("Hello World!"))
 
-ft.app(target=main)' > test.py
+ft.app(target=main)
+EOF
           
-      - name: Try build
-        run: |
-          python test.py
+      - name: Run test
+        run: python test.py
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: chat-app
-          path: |
-            build/apk/*.apk
-            *.apk
+          path: build/apk/*.apk
           if-no-files-found: warn
