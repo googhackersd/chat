@@ -1,0 +1,63 @@
+name: Build APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # 1. Устанавливаем Flutter в систему
+      - name: Install Flutter
+        run: |
+          git clone https://github.com/flutter/flutter.git
+          echo "$PWD/flutter/bin" >> $GITHUB_PATH
+          # Добавляем в глобальный PATH
+          sudo ln -s $PWD/flutter/bin/flutter /usr/local/bin/flutter
+          flutter doctor
+      
+      # 2. Проверяем, что Flutter доступен
+      - name: Verify Flutter
+        run: |
+          which flutter
+          flutter --version
+      
+      # 3. Устанавливаем Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      # 4. Устанавливаем flet
+      - name: Install flet
+        run: pip install flet
+      
+      # 5. Создаём тестовое приложение
+      - name: Create app
+        run: |
+          mkdir -p myapp
+          cd myapp
+          echo "import flet as ft" > main.py
+          echo "" >> main.py
+          echo "def main(page: ft.Page):" >> main.py
+          echo "    page.title = 'Test App'" >> main.py
+          echo "    page.add(ft.Text('Hello World!'))" >> main.py
+          echo "" >> main.py
+          echo "ft.app(target=main)" >> main.py
+      
+      # 6. Игнорируем flet-cli и собираем напрямую
+      - name: Build APK directly
+        run: |
+          cd myapp
+          # Инициализируем flutter проект
+          flutter create --org com.example --project-name myapp .
+          cp main.py lib/main.py
+          flutter pub get
+          flutter build apk --release
+      
+      # 7. Загружаем результат
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: myapp/build/app/outputs/flutter-apk/app-release.apk
