@@ -1,0 +1,42 @@
+name: Build APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.2'
+          channel: 'stable'
+      
+      - name: Verify Flutter
+        run: |
+          flutter --version
+          flutter doctor
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install flet
+        run: pip install flet
+      
+      - name: Build APK
+        run: |
+          # Принудительно соглашаемся на все
+          echo "y" | flet build apk --no-publish || true
+          # Или пробуем прямой билд
+          flet build apk --no-publish --include-packages flet flutter
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: |
+            build/apk/**/*.apk
+            *.apk
